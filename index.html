@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FC 온라인 전체 클래스 도감</title>
+<title>클래스 도감</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&display=swap');
 
@@ -536,11 +536,10 @@
 <div class="bg-particles"></div>
 
 <header>
-  <h1>FC ONLINE CLASS GUIDE</h1>
-  <p>EA SPORTS FC 온라인 전체 클래스 도감 - 마우스를 올려 상세 정보를 확인하세요</p>
+  <h1>클래스 도감</h1>
+  <p>EA SPORTS FC 온라인 전체 클래스 도감 - 클릭하여 상세 정보를 확인하세요</p>
   <div class="stats-bar">
     <div class="stat-item"><div class="num" id="totalCount">0</div><div class="label">전체 클래스</div></div>
-    <div class="stat-item"><div class="num" id="catCount">0</div><div class="label">카테고리</div></div>
   </div>
 </header>
 
@@ -804,11 +803,8 @@ function formatDate(d) {
 
 function isNew(d) {
   if (!d) return false;
-  const now = new Date();
-  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
-  const [y, m] = d.split("-").map(Number);
-  const classDate = new Date(y, m - 1, 1);
-  return classDate >= sixMonthsAgo;
+  const [y] = d.split("-").map(Number);
+  return y === new Date().getFullYear();
 }
 
 function filterItems(items, filter) {
@@ -892,7 +888,6 @@ function renderCategory(filter) {
   });
 
   document.getElementById("totalCount").textContent = filter ? totalVisible : CLASS_DATA.length;
-  document.getElementById("catCount").textContent = filter ? visibleCats : CATEGORIES.length;
   noResults.style.display = totalVisible === 0 ? "block" : "none";
 }
 
@@ -934,7 +929,6 @@ function renderByDate(filter) {
   });
 
   document.getElementById("totalCount").textContent = totalVisible;
-  document.getElementById("catCount").textContent = sortedYears.length;
   noResults.style.display = totalVisible === 0 ? "block" : "none";
 }
 
