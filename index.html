@@ -680,10 +680,6 @@
       <div class="modal-desc" id="modalDesc"></div>
       <div class="modal-meta">
         <div class="modal-meta-item">
-          <div class="modal-meta-label">Season ID</div>
-          <div class="modal-meta-value" id="modalId"></div>
-        </div>
-        <div class="modal-meta-item">
           <div class="modal-meta-label">카테고리</div>
           <div class="modal-meta-value" id="modalCat"></div>
         </div>
@@ -1003,7 +999,6 @@ function openDetail(id) {
   document.getElementById("modalFull").textContent = c.full;
   document.getElementById("modalDate").textContent = dateStr ? dateStr + ' 출시' : '';
   document.getElementById("modalDesc").textContent = c.desc;
-  document.getElementById("modalId").textContent = c.id;
   document.getElementById("modalCat").textContent = cat ? cat.name.split('(')[0].trim() : c.cat;
   document.getElementById("modalDateMeta").textContent = dateStr || '-';
 
