@@ -375,6 +375,115 @@
     text-align: center;
   }
 
+  .modal-players {
+    padding: 0 24px 28px;
+  }
+
+  .players-header {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .players-header .players-count {
+    font-size: 0.75rem;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .players-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .players-grid::-webkit-scrollbar { width: 4px; }
+  .players-grid::-webkit-scrollbar-track { background: transparent; }
+  .players-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+
+  .player-item {
+    text-align: center;
+    padding: 8px 4px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.2s;
+    cursor: default;
+  }
+
+  .player-item:hover {
+    background: rgba(0,180,255,0.08);
+    border-color: rgba(0,180,255,0.2);
+  }
+
+  .player-item img {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: rgba(0,0,0,0.3);
+    display: block;
+    margin: 0 auto 6px;
+  }
+
+  .player-item .p-name {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .players-loading {
+    text-align: center;
+    padding: 30px 0;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+  }
+
+  .players-loading .spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(0,180,255,0.2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .players-empty {
+    text-align: center;
+    padding: 20px 0;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+  }
+
+  @media (max-width: 768px) {
+    .players-grid {
+      grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+      gap: 6px;
+      max-height: 300px;
+    }
+    .player-item img { width: 44px; height: 44px; }
+    .player-item { padding: 6px 3px; }
+  }
+
   .modal-meta-label {
     font-size: 0.65rem;
     color: var(--text-dim);
@@ -584,6 +693,7 @@
         </div>
       </div>
     </div>
+    <div class="modal-players" id="modalPlayers"></div>
   </div>
 </div>
 
@@ -828,6 +938,59 @@ function cardHTML(c) {
     </div>`;
 }
 
+let playerCache = null;
+let playersByClass = {};
+
+async function loadPlayerData() {
+  if (playerCache) return;
+  const res = await fetch("https://open.api.nexon.com/static/fconline/meta/spid.json");
+  if (!res.ok) throw new Error("spid fetch failed");
+  playerCache = await res.json();
+  playerCache.forEach(p => {
+    const sid = Math.floor(p.id / 1000000);
+    if (!playersByClass[sid]) playersByClass[sid] = [];
+    playersByClass[sid].push({ spid: p.id, name: p.name });
+  });
+}
+
+function playerImgUrl(spid) {
+  return `https://fconline.nexon.com/DataCenter/PlayerImageActionShot?spid=${spid}`;
+}
+
+function playerFallbackImg(el) {
+  el.onerror = null;
+  el.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Crect fill='%231a2340' width='56' height='56' rx='28'/%3E%3Ctext x='28' y='32' text-anchor='middle' fill='%234a5a7a' font-size='20'%3E⚽%3C/text%3E%3C/svg%3E";
+}
+
+async function renderPlayers(seasonId) {
+  const container = document.getElementById("modalPlayers");
+  container.innerHTML = '<div class="players-loading"><span class="spinner"></span>선수 목록 불러오는 중...</div>';
+
+  try {
+    await loadPlayerData();
+    const players = playersByClass[seasonId] || [];
+    if (players.length === 0) {
+      container.innerHTML = '<div class="players-empty">등록된 선수 정보가 없습니다.</div>';
+      return;
+    }
+    players.sort((a, b) => a.name.localeCompare(b.name, "ko"));
+    container.innerHTML = `
+      <div class="players-header">
+        <span>소속 선수</span>
+        <span class="players-count">${players.length}명</span>
+      </div>
+      <div class="players-grid">
+        ${players.map(p => `
+          <div class="player-item">
+            <img src="${playerImgUrl(p.spid)}" alt="${p.name}" loading="lazy" onerror="playerFallbackImg(this)">
+            <div class="p-name">${p.name}</div>
+          </div>`).join("")}
+      </div>`;
+  } catch (e) {
+    container.innerHTML = '<div class="players-empty">선수 정보를 불러올 수 없습니다.</div>';
+  }
+}
+
 function openDetail(id) {
   const c = CLASS_DATA.find(x => x.id === id);
   if (!c) return;
@@ -844,9 +1007,13 @@ function openDetail(id) {
   document.getElementById("modalCat").textContent = cat ? cat.name.split('(')[0].trim() : c.cat;
   document.getElementById("modalDateMeta").textContent = dateStr || '-';
 
+  document.getElementById("modalPlayers").innerHTML = '';
+
   const modal = document.getElementById("detailModal");
   modal.classList.add("open");
   document.body.style.overflow = "hidden";
+
+  renderPlayers(c.id);
 }
 
 function closeDetail() {
