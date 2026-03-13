@@ -196,7 +196,7 @@
 
   .category-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 12px;
     margin-bottom: 18px;
     padding-bottom: 12px;
@@ -208,6 +208,11 @@
     height: 10px;
     border-radius: 50%;
     flex-shrink: 0;
+    margin-top: 9px;
+  }
+
+  .category-info {
+    flex: 1;
   }
 
   .category-header h2 {
@@ -221,6 +226,14 @@
     color: var(--text-dim);
     margin-left: 8px;
     font-weight: 400;
+  }
+
+  .category-desc {
+    font-size: 0.82rem;
+    color: #6b7280;
+    margin-top: 4px;
+    font-weight: 400;
+    line-height: 1.4;
   }
 
   .class-grid {
@@ -883,19 +896,19 @@ const CLASS_DATA = [
 ];
 
 const CATEGORIES = [
-  {key:"icon", name:"ICON 시리즈", color:"#ffd700", bg:"var(--category-icon)"},
-  {key:"toty", name:"TOTY (올해의 팀)", color:"#c77dff", bg:"var(--category-toty)"},
-  {key:"tots", name:"TOTS (시즌의 팀)", color:"#38b000", bg:"var(--category-tots)"},
-  {key:"ucl", name:"UCL (챔피언스 리그)", color:"#1e6fff", bg:"var(--category-ucl)"},
-  {key:"hero", name:"HEROES (히어로즈)", color:"#ff6b6b", bg:"var(--category-hero)"},
-  {key:"ng", name:"NEW GENERATION (차세대)", color:"#00d4aa", bg:"var(--category-ng)"},
-  {key:"special", name:"SPECIAL CLASS (스페셜)", color:"#ff9f1c", bg:"var(--category-special)"},
-  {key:"ambassador", name:"AMBASSADOR (앰버서더)", color:"#e07cff", bg:"var(--category-ambassador)"},
-  {key:"korea", name:"KOREA (한국 축구)", color:"#ff3366", bg:"var(--category-korea)"},
-  {key:"kfa", name:"KFA (대한축구협회)", color:"#ff5577", bg:"var(--category-korea)"},
-  {key:"kleague", name:"K LEAGUE (K리그)", color:"#22bb33", bg:"var(--category-kleague)"},
-  {key:"pl", name:"PREMIUM LIVE (프리미엄 라이브)", color:"#b088f9", bg:"var(--category-pl)"},
-  {key:"live", name:"LIVE (라이브)", color:"#4cc9f0", bg:"var(--category-live)"}
+  {key:"icon", name:"ICON 시리즈", color:"#ffd700", bg:"var(--category-icon)", desc:"은퇴한 전설적인 선수들로 구성된 최상위 클래스 시리즈"},
+  {key:"toty", name:"TOTY (올해의 팀)", color:"#c77dff", bg:"var(--category-toty)", desc:"매년 팬 투표로 선정된 올해 최고의 11인으로 구성된 최고급 클래스"},
+  {key:"tots", name:"TOTS (시즌의 팀)", color:"#38b000", bg:"var(--category-tots)", desc:"해당 시즌 유럽 주요 리그에서 최고의 활약을 펼친 선수들로 구성"},
+  {key:"ucl", name:"UCL (챔피언스 리그)", color:"#1e6fff", bg:"var(--category-ucl)", desc:"UEFA 챔피언스 리그 시즌 성적에 따라 능력치가 변동되는 라이브 클래스"},
+  {key:"hero", name:"HEROES (히어로즈)", color:"#ff6b6b", bg:"var(--category-hero)", desc:"FIFA 시리즈 FUT Heroes 기반, 팬들에게 사랑받은 은퇴 선수들로 구성"},
+  {key:"ng", name:"NEW GENERATION (차세대)", color:"#00d4aa", bg:"var(--category-ng)", desc:"각 시즌 기대되는 젊은 유망주들의 성장 잠재력을 반영한 클래스"},
+  {key:"special", name:"SPECIAL CLASS (스페셜)", color:"#ff9f1c", bg:"var(--category-special)", desc:"월드컵, 이적, 원클럽맨 등 다양한 테마로 출시되는 특별 기획 클래스"},
+  {key:"ambassador", name:"AMBASSADOR (앰버서더)", color:"#e07cff", bg:"var(--category-ambassador)", desc:"EA와 독점 라이선스 계약을 맺은 클럽의 레전드 선수들로 구성"},
+  {key:"korea", name:"KOREA (한국 축구)", color:"#ff3366", bg:"var(--category-korea)", desc:"대한민국 축구 역사를 빛낸 레전드 및 국가대표 선수들로 구성"},
+  {key:"kfa", name:"KFA (대한축구협회)", color:"#ff5577", bg:"var(--category-korea)", desc:"대한축구협회 소속 국가대표 선수들의 A매치 활약이 반영된 시즌별 클래스"},
+  {key:"kleague", name:"K LEAGUE (K리그)", color:"#22bb33", bg:"var(--category-kleague)", desc:"K리그 소속 선수 및 시즌 베스트 11 선수들로 구성된 국내 리그 클래스"},
+  {key:"pl", name:"PREMIUM LIVE (프리미엄 라이브)", color:"#b088f9", bg:"var(--category-pl)", desc:"5대 리그 최고 활약 선수들로 구성된 라이브의 상위 클래스"},
+  {key:"live", name:"LIVE (라이브)", color:"#4cc9f0", bg:"var(--category-live)", desc:"현역 선수들로 이루어진 가장 기본적인 시즌 클래스"}
 ];
 
 const RELEASE_DATES = {
@@ -1087,7 +1100,10 @@ function renderCategory(filter) {
     section.innerHTML = `
       <div class="category-header">
         <div class="category-dot" style="background:${cat.color};box-shadow:0 0 8px ${cat.color}"></div>
-        <h2>${cat.name}<span class="count">${items.length}개</span></h2>
+        <div class="category-info">
+          <h2>${cat.name}<span class="count">${items.length}개</span></h2>
+          ${cat.desc ? `<p class="category-desc">${cat.desc}</p>` : ''}
+        </div>
       </div>
       <div class="class-grid">${items.map(cardHTML).join("")}</div>`;
     container.appendChild(section);
