@@ -339,6 +339,130 @@
   .hidden { display: none !important; }
 
   .category.hidden-cat { display: none; }
+
+  .sort-tabs {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 18px auto 0;
+    padding: 0 20px;
+    max-width: 600px;
+  }
+
+  .sort-tab {
+    padding: 9px 22px;
+    border-radius: 20px;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--text-dim);
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+
+  .sort-tab:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  .sort-tab.active {
+    background: linear-gradient(135deg, rgba(0,180,255,0.2), rgba(123,97,255,0.2));
+    border-color: var(--accent);
+    color: #fff;
+    box-shadow: 0 0 12px var(--accent-glow);
+  }
+
+  .new-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #ff3366, #ff6b35);
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 8px;
+    margin-left: 6px;
+    letter-spacing: 0.5px;
+    vertical-align: middle;
+    animation: newPulse 2s ease-in-out infinite;
+    position: relative;
+    z-index: 1;
+  }
+
+  @keyframes newPulse {
+    0%, 100% { box-shadow: 0 0 6px rgba(255,51,102,0.4); }
+    50% { box-shadow: 0 0 14px rgba(255,51,102,0.7); }
+  }
+
+  .class-date {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    margin-top: 3px;
+    position: relative;
+    z-index: 1;
+    opacity: 0.7;
+  }
+
+  .update-banner {
+    position: relative;
+    z-index: 1;
+    max-width: 600px;
+    margin: 12px auto 0;
+    padding: 10px 18px;
+    background: linear-gradient(135deg, rgba(0,180,255,0.12), rgba(123,97,255,0.12));
+    border: 1px solid rgba(0,180,255,0.3);
+    border-radius: 10px;
+    color: var(--accent);
+    font-size: 0.85rem;
+    text-align: center;
+    display: none;
+    animation: fadeSlideIn 0.5s ease;
+  }
+
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .date-sort-section {
+    margin-bottom: 50px;
+  }
+
+  .date-sort-section .date-group-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--card-border);
+  }
+
+  .date-group-header h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .date-group-header .group-count {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+
+  .tooltip .tt-date {
+    font-size: 0.72rem;
+    color: var(--accent);
+    opacity: 0.8;
+    margin-top: 2px;
+  }
+
+  @media (max-width: 768px) {
+    .sort-tabs { gap: 6px; }
+    .sort-tab { padding: 7px 14px; font-size: 0.8rem; }
+  }
 </style>
 </head>
 <body>
@@ -357,6 +481,13 @@
   <span class="search-icon">&#128269;</span>
   <input type="text" id="searchInput" placeholder="클래스명을 검색하세요 (예: ICON, TOTY, LIVE ...)">
 </div>
+
+<div class="sort-tabs">
+  <button class="sort-tab active" data-sort="category">카테고리별</button>
+  <button class="sort-tab" data-sort="date">출시일순</button>
+</div>
+
+<div class="update-banner" id="updateBanner"></div>
 
 <div class="container" id="classContainer"></div>
 <div class="no-results" id="noResults">검색 결과가 없습니다.</div>
@@ -534,25 +665,97 @@ const CATEGORIES = [
   {key:"live", name:"LIVE (라이브)", color:"#4cc9f0", bg:"var(--category-live)"}
 ];
 
-function render(filter = "") {
+const RELEASE_DATES = {
+  100:"2023-05",101:"2019-01",110:"2023-05",111:"2024-05",113:"2025-03",114:"2025-03",
+  201:"2018-05",202:"2018-05",206:"2018-08",207:"2018-09",210:"2019-01",211:"2019-01",
+  212:"2018-07",213:"2019-01",214:"2019-05",215:"2019-05",216:"2019-08",217:"2019-10",
+  218:"2019-10",219:"2019-10",220:"2020-01",221:"2019-10",222:"2020-01",225:"2020-03",
+  230:"2020-05",231:"2020-09",233:"2020-09",234:"2020-03",236:"2020-08",237:"2020-12",
+  238:"2020-03",239:"2020-05",240:"2021-01",241:"2021-01",242:"2020-10",246:"2021-05",
+  247:"2021-07",249:"2021-07",250:"2021-05",251:"2021-09",252:"2021-09",253:"2021-09",
+  254:"2021-10",256:"2021-12",257:"2021-11",258:"2022-01",259:"2022-01",260:"2021-10",
+  261:"2022-03",262:"2022-03",264:"2022-05",265:"2022-06",267:"2022-05",268:"2022-08",
+  270:"2022-09",272:"2022-11",273:"2022-11",274:"2022-09",276:"2022-08",277:"2022-05",
+  278:"2023-01",279:"2023-01",280:"2022-10",281:"2023-03",283:"2023-05",284:"2023-05",
+  289:"2023-07",290:"2023-08",291:"2023-06",293:"2022-05",294:"2021-05",295:"2019-05",
+  297:"2018-07",298:"2018-05",
+  300:"2025-10",317:"2018-05",318:"2018-10",319:"2019-10",320:"2020-12",321:"2021-11",
+  322:"2022-11",323:"2023-10",324:"2024-10",
+  350:"2023-10",351:"2022-05",352:"2021-05",353:"2019-05",354:"2018-05",
+  500:"2018-11",501:"2019-05",502:"2019-10",503:"2020-03",504:"2020-05",506:"2020-12",
+  507:"2021-05",508:"2021-11",510:"2022-11",511:"2022-11",512:"2023-10",513:"2023-10",
+  514:"2024-10",515:"2024-10",516:"2025-10",517:"2025-10",
+  801:"2023-10",802:"2023-11",804:"2023-03",805:"2023-05",806:"2023-10",
+  807:"2024-01",808:"2024-01",809:"2024-05",810:"2023-10",811:"2024-03",812:"2024-01",
+  813:"2024-06",814:"2024-07",815:"2024-06",816:"2024-08",817:"2024-10",818:"2024-08",
+  819:"2024-10",820:"2024-11",821:"2024-07",822:"2024-11",823:"2024-12",824:"2024-12",
+  825:"2024-08",826:"2024-08",827:"2024-10",828:"2024-10",829:"2024-11",830:"2024-05",
+  831:"2025-01",832:"2025-01",833:"2025-05",834:"2024-10",835:"2025-01",836:"2024-11",
+  837:"2025-01",838:"2025-02",839:"2024-11",840:"2024-11",841:"2025-03",
+  845:"2024-12",846:"2024-12",848:"2025-01",849:"2025-02",850:"2025-02",851:"2025-02",
+  852:"2025-03",853:"2025-05",854:"2026-01",855:"2026-01",856:"2025-10",857:"2025-05"
+};
+
+function getDate(id) {
+  return RELEASE_DATES[id] || null;
+}
+
+function formatDate(d) {
+  if (!d) return "";
+  const [y, m] = d.split("-");
+  return `${y}년 ${parseInt(m)}월`;
+}
+
+function isNew(d) {
+  if (!d) return false;
+  const now = new Date();
+  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+  const [y, m] = d.split("-").map(Number);
+  const classDate = new Date(y, m - 1, 1);
+  return classDate >= sixMonthsAgo;
+}
+
+function filterItems(items, filter) {
+  if (!filter) return items;
+  const q = filter.toLowerCase();
+  return items.filter(c =>
+    c.name.toLowerCase().includes(q) || c.full.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q)
+  );
+}
+
+function cardHTML(c) {
+  const d = getDate(c.id);
+  const dateStr = formatDate(d);
+  const newTag = isNew(d) ? '<span class="new-badge">NEW</span>' : '';
+  return `
+    <div class="class-card">
+      <img src="${c.img}" alt="${c.name}" loading="lazy" onerror="this.style.opacity='0.3'">
+      <div class="class-name">${c.name}${newTag}</div>
+      <div class="class-full">${c.full}</div>
+      ${dateStr ? `<div class="class-date">${dateStr} 출시</div>` : ''}
+      <div class="tooltip">
+        <div class="tt-name">${c.name}${newTag}</div>
+        <div class="tt-full">${c.full}</div>
+        ${dateStr ? `<div class="tt-date">출시일: ${dateStr}</div>` : ''}
+        <div class="tt-desc">${c.desc}</div>
+        <div class="tt-id">Season ID: ${c.id}</div>
+      </div>
+    </div>`;
+}
+
+let currentSort = "category";
+
+function renderCategory(filter) {
   const container = document.getElementById("classContainer");
   const noResults = document.getElementById("noResults");
   container.innerHTML = "";
-  let totalVisible = 0;
-  let visibleCats = 0;
+  let totalVisible = 0, visibleCats = 0;
 
   CATEGORIES.forEach(cat => {
-    const items = CLASS_DATA.filter(c => {
-      if (c.cat !== cat.key) return false;
-      if (!filter) return true;
-      const q = filter.toLowerCase();
-      return c.name.toLowerCase().includes(q) || c.full.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q);
-    });
-
+    const items = filterItems(CLASS_DATA.filter(c => c.cat === cat.key), filter);
     if (items.length === 0) return;
     visibleCats++;
     totalVisible += items.length;
-
     const section = document.createElement("div");
     section.className = "category";
     section.innerHTML = `
@@ -560,22 +763,7 @@ function render(filter = "") {
         <div class="category-dot" style="background:${cat.color};box-shadow:0 0 8px ${cat.color}"></div>
         <h2>${cat.name}<span class="count">${items.length}개</span></h2>
       </div>
-      <div class="class-grid">
-        ${items.map(c => `
-          <div class="class-card">
-            <img src="${c.img}" alt="${c.name}" loading="lazy" onerror="this.style.opacity='0.3'">
-            <div class="class-name">${c.name}</div>
-            <div class="class-full">${c.full}</div>
-            <div class="tooltip">
-              <div class="tt-name">${c.name}</div>
-              <div class="tt-full">${c.full}</div>
-              <div class="tt-desc">${c.desc}</div>
-              <div class="tt-id">Season ID: ${c.id}</div>
-            </div>
-          </div>
-        `).join("")}
-      </div>
-    `;
+      <div class="class-grid">${items.map(cardHTML).join("")}</div>`;
     container.appendChild(section);
   });
 
@@ -584,11 +772,139 @@ function render(filter = "") {
   noResults.style.display = totalVisible === 0 ? "block" : "none";
 }
 
+function renderByDate(filter) {
+  const container = document.getElementById("classContainer");
+  const noResults = document.getElementById("noResults");
+  container.innerHTML = "";
+
+  const items = filterItems([...CLASS_DATA], filter);
+  items.sort((a, b) => {
+    const da = getDate(a.id) || "2018-01";
+    const db = getDate(b.id) || "2018-01";
+    return db.localeCompare(da);
+  });
+
+  const groups = {};
+  items.forEach(c => {
+    const d = getDate(c.id);
+    const key = d ? d.substring(0, 4) : "기타";
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(c);
+  });
+
+  const sortedYears = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+  let totalVisible = 0;
+
+  sortedYears.forEach(year => {
+    const yearItems = groups[year];
+    totalVisible += yearItems.length;
+    const section = document.createElement("div");
+    section.className = "date-sort-section";
+    section.innerHTML = `
+      <div class="date-group-header">
+        <h2>${year === "기타" ? "출시일 미상" : year + "년"}</h2>
+        <span class="group-count">${yearItems.length}개</span>
+      </div>
+      <div class="class-grid">${yearItems.map(cardHTML).join("")}</div>`;
+    container.appendChild(section);
+  });
+
+  document.getElementById("totalCount").textContent = totalVisible;
+  document.getElementById("catCount").textContent = sortedYears.length;
+  noResults.style.display = totalVisible === 0 ? "block" : "none";
+}
+
+function render(filter = "") {
+  if (currentSort === "date") renderByDate(filter);
+  else renderCategory(filter);
+}
+
+document.querySelectorAll(".sort-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".sort-tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    currentSort = tab.dataset.sort;
+    render(document.getElementById("searchInput").value.trim());
+  });
+});
+
 document.getElementById("searchInput").addEventListener("input", e => {
   render(e.target.value.trim());
 });
 
+const KNOWN_CAT_MAP = {
+  icon:{prefix:["icon","im"],range:[100,119]},
+  toty:{keywords:["toty","totn"]},
+  tots:{keywords:["tots"]},
+  ucl:{keywords:["ucl"]},
+  hero:{keywords:["hero","hr"]},
+  ng:{keywords:["ng","new gen"]},
+  kfa:{keywords:["kfa"]},
+  kleague:{keywords:["kleague","kl","k-league","klb","kb"]},
+  pl:{keywords:["premium","pla","pls","plc"]},
+  live:{keywords:["live"],range:[300,399]}
+};
+
+function guessCategory(id, name, fullName) {
+  const n = (name + " " + fullName).toLowerCase();
+  if (id >= 100 && id <= 119) return "icon";
+  if (id >= 300 && id <= 399) return "live";
+  if (id >= 500 && id <= 519) {
+    if (n.includes("premium") || n.includes("pl")) return "pl";
+    if (n.includes("kleague") || n.includes("kl")) return "kleague";
+  }
+  if (n.includes("toty") || n.includes("team of the year")) return "toty";
+  if (n.includes("totn") || n.includes("nominated")) return "toty";
+  if (n.includes("tots") || n.includes("team of the season")) return "tots";
+  if (n.includes("ucl") || n.includes("champions league")) return "ucl";
+  if (n.includes("hero")) return "hero";
+  if (n.includes("ng") || n.includes("new gen")) return "ng";
+  if (n.includes("kfa")) return "kfa";
+  if (n.includes("kleague") || n.includes("k-league") || n.includes("klb")) return "kleague";
+  if (n.includes("premium") || n.includes("pla") || n.includes("pls")) return "pl";
+  if (n.includes("live")) return "live";
+  if (n.includes("ambassador") || n.includes("ambs")) return "ambassador";
+  return "special";
+}
+
+async function checkForUpdates() {
+  try {
+    const res = await fetch("https://open.api.nexon.com/static/fconline/meta/seasonid.json");
+    if (!res.ok) return;
+    const apiData = await res.json();
+    const existingIds = new Set(CLASS_DATA.map(c => c.id));
+    const newClasses = [];
+
+    apiData.forEach(item => {
+      const id = item.seasonId;
+      if (!existingIds.has(id)) {
+        const imgName = item.seasonImg;
+        newClasses.push({
+          id,
+          name: item.className,
+          full: item.className,
+          img: `https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/${imgName}`,
+          cat: guessCategory(id, item.className, item.className),
+          desc: "신규 클래스입니다."
+        });
+        const today = new Date();
+        const ym = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0");
+        RELEASE_DATES[id] = ym;
+      }
+    });
+
+    if (newClasses.length > 0) {
+      newClasses.forEach(c => CLASS_DATA.push(c));
+      const banner = document.getElementById("updateBanner");
+      banner.textContent = `✨ 신규 클래스 ${newClasses.length}개가 감지되어 자동 추가되었습니다: ${newClasses.map(c => c.name).join(", ")}`;
+      banner.style.display = "block";
+      render(document.getElementById("searchInput").value.trim());
+    }
+  } catch (e) {}
+}
+
 render();
+checkForUpdates();
 </script>
 </body>
 </html>
