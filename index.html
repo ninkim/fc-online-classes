@@ -949,11 +949,23 @@ async function loadPlayerData() {
   });
 }
 
+const IMG_CDN = "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common";
+
 function playerImgUrl(spid) {
-  return `https://fconline.nexon.com/DataCenter/PlayerImageActionShot?spid=${spid}`;
+  return `${IMG_CDN}/playersAction/p${spid}.png`;
+}
+
+function playerFaceUrl(spid) {
+  return `${IMG_CDN}/players/p${spid}.png`;
 }
 
 function playerFallbackImg(el) {
+  const spid = el.dataset.spid;
+  if (spid && !el.dataset.tried) {
+    el.dataset.tried = "1";
+    el.src = playerFaceUrl(spid);
+    return;
+  }
   el.onerror = null;
   el.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Crect fill='%231a2340' width='56' height='56' rx='28'/%3E%3Ctext x='28' y='32' text-anchor='middle' fill='%234a5a7a' font-size='20'%3E⚽%3C/text%3E%3C/svg%3E";
 }
@@ -978,7 +990,7 @@ async function renderPlayers(seasonId) {
       <div class="players-grid">
         ${players.map(p => `
           <div class="player-item">
-            <img src="${playerImgUrl(p.spid)}" alt="${p.name}" loading="lazy" onerror="playerFallbackImg(this)">
+            <img src="${playerImgUrl(p.spid)}" alt="${p.name}" loading="lazy" data-spid="${p.spid}" onerror="playerFallbackImg(this)">
             <div class="p-name">${p.name}</div>
           </div>`).join("")}
       </div>`;
