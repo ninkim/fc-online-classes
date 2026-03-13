@@ -214,6 +214,11 @@
     box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 20px var(--accent-glow);
   }
 
+  .class-card:active {
+    transform: translateY(-2px) scale(0.97);
+    transition: transform 0.1s;
+  }
+
   .class-card:hover::before { opacity: 1; }
 
   .class-card img {
@@ -247,66 +252,141 @@
     line-height: 1.3;
   }
 
-  .tooltip {
-    position: absolute;
-    bottom: calc(100% + 12px);
-    left: 50%;
-    transform: translateX(-50%) scale(0.9);
-    background: #1a2340;
-    border: 1px solid var(--accent);
-    border-radius: 12px;
-    padding: 16px 18px;
-    width: 280px;
-    z-index: 100;
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     opacity: 0;
     pointer-events: none;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 15px var(--accent-glow);
-    text-align: left;
+    transition: opacity 0.3s;
+    padding: 20px;
   }
 
-  .tooltip::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 8px solid transparent;
-    border-top-color: var(--accent);
-  }
-
-  .class-card:hover .tooltip {
+  .modal-overlay.open {
     opacity: 1;
-    transform: translateX(-50%) scale(1);
     pointer-events: auto;
   }
 
-  .tooltip .tt-name {
-    font-size: 1rem;
-    font-weight: 700;
+  .modal-content {
+    background: linear-gradient(160deg, #131b30 0%, #0e1525 100%);
+    border: 1px solid var(--accent);
+    border-radius: 18px;
+    max-width: 440px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 30px var(--accent-glow);
+    transform: scale(0.9) translateY(20px);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .modal-overlay.open .modal-content {
+    transform: scale(1) translateY(0);
+  }
+
+  .modal-header {
+    position: relative;
+    text-align: center;
+    padding: 32px 24px 20px;
+    background: radial-gradient(ellipse at 50% 0%, rgba(0,180,255,0.1) 0%, transparent 70%);
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 14px; right: 16px;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--card-border);
+    background: rgba(255,255,255,0.05);
+    color: var(--text-dim);
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .modal-close:hover {
+    background: rgba(255,80,80,0.2);
+    border-color: #ff5050;
+    color: #ff5050;
+  }
+
+  .modal-img {
+    width: 120px;
+    height: auto;
+    filter: drop-shadow(0 4px 20px rgba(0,180,255,0.3));
+    margin-bottom: 16px;
+  }
+
+  .modal-name {
+    font-size: 1.4rem;
+    font-weight: 800;
     color: #fff;
     margin-bottom: 4px;
   }
 
-  .tooltip .tt-full {
-    font-size: 0.78rem;
+  .modal-full {
+    font-size: 0.9rem;
     color: var(--accent);
-    margin-bottom: 8px;
     font-weight: 500;
+    margin-bottom: 6px;
   }
 
-  .tooltip .tt-desc {
-    font-size: 0.8rem;
-    color: #b0bcd4;
-    line-height: 1.6;
-  }
-
-  .tooltip .tt-id {
-    font-size: 0.7rem;
+  .modal-date {
+    font-size: 0.78rem;
     color: var(--text-dim);
-    margin-top: 8px;
-    padding-top: 6px;
-    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .modal-body {
+    padding: 0 24px 28px;
+  }
+
+  .modal-desc {
+    font-size: 0.92rem;
+    color: #c0cce0;
+    line-height: 1.8;
+    padding: 18px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.05);
+    margin-bottom: 16px;
+  }
+
+  .modal-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: rgba(0,180,255,0.06);
+    border-radius: 10px;
+    border: 1px solid rgba(0,180,255,0.1);
+  }
+
+  .modal-meta-item {
+    text-align: center;
+  }
+
+  .modal-meta-label {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 3px;
+  }
+
+  .modal-meta-value {
+    font-size: 0.85rem;
+    color: var(--text);
+    font-weight: 600;
   }
 
   .no-results {
@@ -322,18 +402,11 @@
     .class-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
     .class-card img { width: 60px; }
     .class-card { padding: 14px 10px 12px; }
-    .tooltip { width: 240px; padding: 12px 14px; }
     .stats-bar { gap: 24px; }
-
-    .class-card:hover .tooltip {
-      position: fixed;
-      bottom: auto;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(1);
-      width: 85vw;
-      max-width: 320px;
-    }
+    .modal-content { max-width: 95vw; }
+    .modal-img { width: 90px; }
+    .modal-name { font-size: 1.2rem; }
+    .modal-desc { font-size: 0.85rem; padding: 14px; }
   }
 
   .hidden { display: none !important; }
@@ -452,12 +525,6 @@
     font-weight: 400;
   }
 
-  .tooltip .tt-date {
-    font-size: 0.72rem;
-    color: var(--accent);
-    opacity: 0.8;
-    margin-top: 2px;
-  }
 
   @media (max-width: 768px) {
     .sort-tabs { gap: 6px; }
@@ -491,6 +558,35 @@
 
 <div class="container" id="classContainer"></div>
 <div class="no-results" id="noResults">검색 결과가 없습니다.</div>
+
+<div class="modal-overlay" id="detailModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <button class="modal-close" id="modalClose">&times;</button>
+      <img class="modal-img" id="modalImg" src="" alt="">
+      <div class="modal-name" id="modalName"></div>
+      <div class="modal-full" id="modalFull"></div>
+      <div class="modal-date" id="modalDate"></div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-desc" id="modalDesc"></div>
+      <div class="modal-meta">
+        <div class="modal-meta-item">
+          <div class="modal-meta-label">Season ID</div>
+          <div class="modal-meta-value" id="modalId"></div>
+        </div>
+        <div class="modal-meta-item">
+          <div class="modal-meta-label">카테고리</div>
+          <div class="modal-meta-value" id="modalCat"></div>
+        </div>
+        <div class="modal-meta-item">
+          <div class="modal-meta-label">출시일</div>
+          <div class="modal-meta-value" id="modalDateMeta"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 const CLASS_DATA = [
@@ -728,20 +824,48 @@ function cardHTML(c) {
   const dateStr = formatDate(d);
   const newTag = isNew(d) ? '<span class="new-badge">NEW</span>' : '';
   return `
-    <div class="class-card">
+    <div class="class-card" data-cid="${c.id}" onclick="openDetail(${c.id})" style="cursor:pointer">
       <img src="${c.img}" alt="${c.name}" loading="lazy" onerror="this.style.opacity='0.3'">
       <div class="class-name">${c.name}${newTag}</div>
       <div class="class-full">${c.full}</div>
       ${dateStr ? `<div class="class-date">${dateStr} 출시</div>` : ''}
-      <div class="tooltip">
-        <div class="tt-name">${c.name}${newTag}</div>
-        <div class="tt-full">${c.full}</div>
-        ${dateStr ? `<div class="tt-date">출시일: ${dateStr}</div>` : ''}
-        <div class="tt-desc">${c.desc}</div>
-        <div class="tt-id">Season ID: ${c.id}</div>
-      </div>
     </div>`;
 }
+
+function openDetail(id) {
+  const c = CLASS_DATA.find(x => x.id === id);
+  if (!c) return;
+  const d = getDate(c.id);
+  const dateStr = formatDate(d);
+  const cat = CATEGORIES.find(x => x.key === c.cat);
+
+  document.getElementById("modalImg").src = c.img;
+  document.getElementById("modalName").innerHTML = c.name + (isNew(d) ? ' <span class="new-badge">NEW</span>' : '');
+  document.getElementById("modalFull").textContent = c.full;
+  document.getElementById("modalDate").textContent = dateStr ? dateStr + ' 출시' : '';
+  document.getElementById("modalDesc").textContent = c.desc;
+  document.getElementById("modalId").textContent = c.id;
+  document.getElementById("modalCat").textContent = cat ? cat.name.split('(')[0].trim() : c.cat;
+  document.getElementById("modalDateMeta").textContent = dateStr || '-';
+
+  const modal = document.getElementById("detailModal");
+  modal.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function closeDetail() {
+  const modal = document.getElementById("detailModal");
+  modal.classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+document.getElementById("detailModal").addEventListener("click", function(e) {
+  if (e.target === this) closeDetail();
+});
+document.getElementById("modalClose").addEventListener("click", closeDetail);
+document.addEventListener("keydown", function(e) {
+  if (e.key === "Escape") closeDetail();
+});
 
 let currentSort = "category";
 
